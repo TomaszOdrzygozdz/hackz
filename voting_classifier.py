@@ -156,8 +156,8 @@ def return_inner_models(features):
     # # models.append(("mlp", mlp))
     # #
     # # ### knn
-    # knn = KNeighborsClassifier(n_neighbors=3)
-    # models.append(("knn", knn))
+    knn = KNeighborsClassifier(n_neighbors=3)
+    models.append(("knn", knn))
     # #
     # # ### adaboost
     ada = AdaBoostClassifier(n_estimators=5, random_state=0)
@@ -168,13 +168,13 @@ def return_inner_models(features):
     models.append(("dtree", dtree))
     #
     # ### lgbm model
-    # lgbm_model = lightgbm.LGBMClassifier(num_leaves=5,
-    #                                     learning_rate=0.05, n_estimators=5,
-    #                                     max_bin=55, bagging_fraction=0.8,
-    #                                     bagging_freq=5, feature_fraction=0.2319,
-    #                                     feature_fraction_seed=9, bagging_seed=9,
-    #                                     min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
-    # models.append(("lgbm",lgbm_model))
+    lgbm_model = lightgbm.LGBMClassifier(num_leaves=5,
+                                        learning_rate=0.05, n_estimators=5,
+                                        max_bin=55, bagging_fraction=0.8,
+                                        bagging_freq=5, feature_fraction=0.2319,
+                                        feature_fraction_seed=9, bagging_seed=9,
+                                        min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
+    models.append(("lgbm",lgbm_model))
     return models
 
 
@@ -183,6 +183,7 @@ def TrainSKClassificator():
     # selected_dataset = load_dbalanced_train_df  #### nonans_dataset#noinfo_dataset #### tutaj usuwamy te rzedzy co maja duzo kolumn, ktore sa puste
     # selected_dataset
     X = load_train()
+    # X.shape
     X = balance_dataset(X)
     X_test = load_test()
     X_test_id = X_test['building_id']
