@@ -146,10 +146,6 @@ def prep_data():
     mean_damage_grade_for_vdcmun_id = train_df.groupby('vdcmun_id')[target].mean()
     mean_damage_grade_for_ward_id = train_df.groupby('ward_id')[target].mean()
 
-    df = pd.DataFrame()
-    for i in range(1, 6):
-        df['no_of_{}_in_district'.format(i)] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
-
     # ONE HOT ENCODING AND SCALING
     for n in numerical_columns:
         train_df, test_df = get_scaled_column(n, train_df, test_df)
@@ -203,5 +199,12 @@ def dump_predictions(X_test_id, output_):
     df_to_save['building_id'] = X_test_id
     df_to_save[target] = output_
     save_final_output(df_to_save)
+
+def find_statistics(feature_name, train_df, test_df):
+    df = pd.DataFrame()
+    for i in range(1, 6):
+        df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
+    df = df.div(df.sum(axis=1), axis=0)
+    return df
 
 # prep_data()
