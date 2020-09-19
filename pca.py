@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from data_prep import load_X_Y, load_train, PCA_TRAIN, load_X_Y_file, DUMP_DIR
 
 n_components = 5
-file_name = 'test_simple'
+file_name = 'train_simple'
 
 X, Y = load_X_Y_file(file_name)
 
