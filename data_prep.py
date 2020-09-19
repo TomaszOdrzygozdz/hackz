@@ -31,6 +31,8 @@ numerical_columns = ['count_families', 'count_floors_pre_eq', 'age_building', 'p
                      'height_ft_pre_eq', 'household_count', 'avg_hh_size']
 statistics_for = categorical_columns
 
+avg_stats = {}
+
 def get_dummies_from_value_in_column(column_name, train_df, test_df):
     train_df[column_name].fillna(value='no_info', inplace=True)
     test_df[column_name].fillna(value='no_info', inplace=True)
@@ -216,11 +218,16 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
     df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
     for i in range(1, 6):
         df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby(feature_name)[target].value_counts().unstack()[i]
-    df.fillna(0, inplace=True)
+    df.fillna(df.mean(), inplace=True)
     df = df.div(df.sum(axis=1), axis=0)
+
+
+    avg_stats[feature_name] = df.mean(axis=1)
     train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
     test_df = pd.merge(test_df, df, left_on=feature_name, right_index=True, how='left')
-    test_df.fillna(0, inplace=True)
+
+
+
     # x = train_df[train_df.isnull().any(axis=1)]
     if drop:
         train_df.drop(columns=[feature_name], inplace=True)
@@ -230,5 +237,5 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
 # def processing_outlier(feature_name, train_df, test_df):
 #     if feature_name == 'age_building':
 #         train_df[train_df[feature_name]==999]
-
+#
 # prep_data()
