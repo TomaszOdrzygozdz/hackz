@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, RandomF
 
 from numpy import mean
 import random
-from data_prep import load_train, target, load_test, ids_columns, save_final_output
+from data_prep import load_train, target, load_test, ids_columns, save_final_output, balance_dataset, dump_predictions
 from neptune_helper import NeptuneHelper
 import pandas as pd
 import math
@@ -120,7 +120,7 @@ def scale_and_select_features(features, y):
              'RFE': supports[2], 'Random Forest': supports[3], 'LightGBM': supports[4], 'ExtraTrees': supports[5], 'Boruta': supports[6]})
 
         feature_selection_df['Total'] = np.sum(feature_selection_df, axis=1)
-        print(feature_selection_df)
+        # print(feature_selection_df)
 
         max_total = math.ceil(len(supports)*0.5) + 1
         feature_selection_df = feature_selection_df.sort_values(['Total', 'Feature'], ascending=False)
@@ -146,35 +146,35 @@ def return_inner_models(features):
 
     gnb = GaussianNB()
     models.append(('gnb', gnb))
-
-    ### ridge
+    # #
+    # # ### ridge
     ridge = RidgeClassifier()
     models.append(('ridge', ridge))
-
-    ### mlp
-    mlp = MLPClassifier(alpha=1, max_iter=100)
-    models.append(("mlp", mlp))
-
-    ### knn
-    knn = KNeighborsClassifier(n_neighbors=3)
-    models.append(("knn", knn))
-
-    ### adaboost
-    ada = AdaBoostClassifier(n_estimators=5, random_state=0)
-    models.append(("ada", ada))
-
-    ### decision treee
-    dtree = DecisionTreeClassifier(max_depth=5)
-    models.append(("dtree", dtree))
-
-    ### lgbm model
-    lgbm_model = lightgbm.LGBMClassifier(num_leaves=5,
-                                        learning_rate=0.05, n_estimators=5,
-                                        max_bin=55, bagging_fraction=0.8,
-                                        bagging_freq=5, feature_fraction=0.2319,
-                                        feature_fraction_seed=9, bagging_seed=9,
-                                        min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
-    models.append(("lgbm",lgbm_model))
+    # #
+    # # ### mlp
+    # # mlp = MLPClassifier(alpha=1, max_iter=100)
+    # # models.append(("mlp", mlp))
+    # #
+    # # ### knn
+    # knn = KNeighborsClassifier(n_neighbors=3)
+    # models.append(("knn", knn))
+    # #
+    # # ### adaboost
+    # ada = AdaBoostClassifier(n_estimators=5, random_state=0)
+    # models.append(("ada", ada))
+    #
+    # ### decision treee
+    # dtree = DecisionTreeClassifier(max_depth=5)
+    # models.append(("dtree", dtree))
+    #
+    # ### lgbm model
+    # lgbm_model = lightgbm.LGBMClassifier(num_leaves=5,
+    #                                     learning_rate=0.05, n_estimators=5,
+    #                                     max_bin=55, bagging_fraction=0.8,
+    #                                     bagging_freq=5, feature_fraction=0.2319,
+    #                                     feature_fraction_seed=9, bagging_seed=9,
+    #                                     min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
+    # models.append(("lgbm",lgbm_model))
     return models
 
 
@@ -183,6 +183,7 @@ def TrainSKClassificator():
     # selected_dataset = load_dbalanced_train_df  #### nonans_dataset#noinfo_dataset #### tutaj usuwamy te rzedzy co maja duzo kolumn, ktore sa puste
     # selected_dataset
     X = load_train()
+    X = balance_dataset(X)
     X_test = load_test()
     X_test_id = X_test['building_id']
     X.drop(columns=ids_columns, inplace=True)
@@ -210,9 +211,10 @@ def TrainSKClassificator():
     # y
     # X, y = a,b
     selected_cols = a.columns.copy()
+    print(selected_cols)
 
     X = X[selected_cols]
-
+    X_test = X_test[selected_cols]
 
     # X = load_train()
     # X, Y = X.loc[:, X.columns != target], X[[target]]
@@ -223,14 +225,17 @@ def TrainSKClassificator():
 
     from sklearn.model_selection import KFold
 
+    SPLITS = 10
     for i in range(1):
-        kf = KFold(n_splits=2, random_state=random.randint(0, 2**32-1), shuffle=True)
+        kf = KFold(n_splits=SPLITS, random_state=random.randint(0, 2**32-1), shuffle=True)
 
         model = VotingClassifier(return_inner_models(X))#n_estimators=5, max_depth=5)
         RMSE_sum = 0
-        RMSE_length = 10
+        RMSE_length = SPLITS
         r = []
 
+        print('train models')
+        print(X.shape)
         for loop_number, (train, test) in enumerate(kf.split(X)):
 
             training_X_array = X.reindex(index=train)
@@ -238,10 +243,18 @@ def TrainSKClassificator():
 
             X_test_array = X.reindex(index=test)
             y_actual_values = Y.reindex(index=test)
+            print('model fitting')
             model.fit(training_X_array, training_y_array)
+            print('model fitted')
+            print('predicting')
+            print(X_test_array.shape)
             prediction = model.predict(X_test_array)
+            print('predicted')
+
             crime_probabilites = np.array(prediction)
+            print('calculating rmse')
             RMSE_cross_fold = RMSEcalc(crime_probabilites, y_actual_values)
+            print('rmse calculated')
             r.append(RMSE_cross_fold)
             nh.log_metric('rmse_one_fold', RMSE_cross_fold)
 
@@ -249,10 +262,7 @@ def TrainSKClassificator():
 
         print('predict')
         output_ = model.predict(X_test)
-        df_to_save = pd.DataFrame()
-        df_to_save['building_id'] = X_test_id
-        df_to_save[target] = output_
-        save_final_output(df_to_save)
+        dump_predictions(X_test_id, output_)
 
         print('saved')
 

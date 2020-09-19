@@ -81,6 +81,68 @@ def prep_data():
     # FILL IN MISSING DATA
     train_df = train_df.fillna(train_df.median())
     test_df = test_df.fillna(train_df.median())
+
+    #FEATURES engineering
+    train_df['neighbours'] = 'Yes'
+    train_df.loc[train_df['position'] == 'Not attached', 'neighbours'] = 'No'
+    test_df['neighbours'] = 'Yes'
+    test_df.loc[train_df['position'] == 'Not attached', 'neighbours'] = 'No'
+    # new_categorical_cols = ['neighbours']
+    categorical_columns.append('neighbours')
+
+    train_df['simple_plan_configuration'] = 'No'
+    train_df.loc[train_df['plan_configuration'] == 'Rectangular', 'simple_plan_configuration'] = 'Yes'
+    train_df.loc[train_df['plan_configuration'] == 'Square', 'simple_plan_configuration'] = 'Yes'
+    test_df['simple_plan_configuration'] = 'No'
+    test_df.loc[test_df['plan_configuration'] == 'Rectangular', 'simple_plan_configuration'] = 'Yes'
+    test_df.loc[test_df['plan_configuration'] == 'Square', 'simple_plan_configuration'] = 'Yes'
+    categorical_columns.append('simple_plan_configuration')
+    # new_categorical_cols.append('simple_plan_configuration')
+
+    train_df['more_than_two_floors'] = 'No'
+    test_df['more_than_two_floors'] = 'No'
+    train_df.loc[train_df['count_floors_pre_eq'] > 2, 'more_than_two_floors'] = 'Yes'
+    test_df.loc[test_df['count_floors_pre_eq'] > 2, 'more_than_two_floors'] = 'Yes'
+    categorical_columns.append('more_than_two_floors')
+    # new_categorical_cols.append('more_than_two_floors')
+
+    train_df['number_of_geotechnical_risks'] = train_df[
+        ['has_geotechnical_risk_fault_crack', 'has_geotechnical_risk_flood',
+         'has_geotechnical_risk_land_settlement', 'has_geotechnical_risk_landslide',
+         'has_geotechnical_risk_liquefaction', 'has_geotechnical_risk_other',
+         'has_geotechnical_risk_rock_fall']].sum(axis=1)
+    train_df['number_of_geotechnical_risks_higher_than_0'] = 0
+    train_df.loc[train_df['number_of_geotechnical_risks'] > 0, 'number_of_geotechnical_risks_higher_than_0'] = 1
+    train_df['number_of_geotechnical_risks_higher_than_1'] = 0
+    train_df.loc[train_df['number_of_geotechnical_risks'] > 1, 'number_of_geotechnical_risks_higher_than_1'] = 1
+    train_df['number_of_geotechnical_risks_higher_than_2'] = 0
+    train_df.loc[train_df['number_of_geotechnical_risks'] > 2, 'number_of_geotechnical_risks_higher_than_2'] = 1
+    train_df['number_of_geotechnical_risks_higher_than_3'] = 0
+    train_df.loc[train_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
+    train_df['number_of_geotechnical_risks_higher_than_4'] = 0
+    train_df.loc[train_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
+    train_df['number_of_geotechnical_risks_higher_than_5'] = 0
+    train_df.loc[train_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
+    test_df['number_of_geotechnical_risks'] = test_df[
+        ['has_geotechnical_risk_fault_crack', 'has_geotechnical_risk_flood',
+         'has_geotechnical_risk_land_settlement', 'has_geotechnical_risk_landslide',
+         'has_geotechnical_risk_liquefaction', 'has_geotechnical_risk_other',
+         'has_geotechnical_risk_rock_fall']].sum(axis=1)
+    test_df['number_of_geotechnical_risks_higher_than_0'] = 0
+    test_df.loc[test_df['number_of_geotechnical_risks'] > 0, 'number_of_geotechnical_risks_higher_than_0'] = 1
+    test_df['number_of_geotechnical_risks_higher_than_1'] = 0
+    test_df.loc[test_df['number_of_geotechnical_risks'] > 1, 'number_of_geotechnical_risks_higher_than_1'] = 1
+    test_df['number_of_geotechnical_risks_higher_than_2'] = 0
+    test_df.loc[test_df['number_of_geotechnical_risks'] > 2, 'number_of_geotechnical_risks_higher_than_2'] = 1
+    test_df['number_of_geotechnical_risks_higher_than_3'] = 0
+    test_df.loc[test_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
+    test_df['number_of_geotechnical_risks_higher_than_4'] = 0
+    test_df.loc[test_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
+    test_df['number_of_geotechnical_risks_higher_than_5'] = 0
+    test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
+    categorical_columns.append('number_of_geotechnical_risks')
+
+
     # ONE HOT ENCODING AND SCALING
     for n in numerical_columns:
         train_df, test_df = get_scaled_column(n, train_df, test_df)
@@ -91,6 +153,18 @@ def prep_data():
     train_df.to_csv(TRAIN_FILE, index=False)
     test_df.to_csv(TEST_FILE, index=False)
     maxes = train_df.max()
+
+def balance_dataset(train_df):
+    balance_length = train_df.groupby(target).count().min()[0]
+    # balance_length
+    # grade_1
+    b1 = train_df[train_df[target] == 1].sample(n=balance_length)
+    b2 = train_df[train_df[target] == 2].sample(n=balance_length)
+    b3 = train_df[train_df[target] == 3].sample(n=balance_length)
+    b4 = train_df[train_df[target] == 4].sample(n=balance_length)
+    b5 = train_df[train_df[target] == 5].sample(n=balance_length)
+    balanced_train_df = pd.concat([b1, b2, b3, b4, b5]).copy()
+    return balanced_train_df
 
 def load_train():
     return pd.read_csv(TRAIN_FILE)
@@ -116,3 +190,9 @@ def remove_cols(col_list, file_name):
 
 def check_cols():
     print(len([target] + ids_columns + categorical_columns + onehot_columns + numerical_columns))
+
+def dump_predictions(X_test_id, output_):
+    df_to_save = pd.DataFrame()
+    df_to_save['building_id'] = X_test_id
+    df_to_save[target] = output_
+    save_final_output(df_to_save)
