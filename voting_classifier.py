@@ -140,7 +140,7 @@ def return_inner_models(features):
     models = []
 
     ### random forest model
-    rf_model = RandomForestClassifier(max_depth=5, random_state=42, n_estimators=5,
+    rf_model = RandomForestClassifier(max_depth=10, random_state=42, n_estimators=5,
                                      verbose=0)  # Train the model on training data
     models.append(("rf", rf_model))
 
@@ -156,19 +156,19 @@ def return_inner_models(features):
     # models.append(("mlp", mlp))
     # #
     # # ### knn
-    knn = KNeighborsClassifier(n_neighbors=3)
+    knn = KNeighborsClassifier(n_neighbors=5)
     models.append(("knn", knn))
     # #
     # # ### adaboost
-    ada = AdaBoostClassifier(n_estimators=5, random_state=0)
+    ada = AdaBoostClassifier(n_estimators=10, random_state=0)
     models.append(("ada", ada))
     #
     # ### decision treee
-    dtree = DecisionTreeClassifier(max_depth=5)
+    dtree = DecisionTreeClassifier(max_depth=10)
     models.append(("dtree", dtree))
     #
     # ### lgbm model
-    lgbm_model = lightgbm.LGBMClassifier(num_leaves=5,
+    lgbm_model = lightgbm.LGBMClassifier(num_leaves=10,
                                         learning_rate=0.05, n_estimators=5,
                                         max_bin=55, bagging_fraction=0.8,
                                         bagging_freq=5, feature_fraction=0.2319,
@@ -185,7 +185,7 @@ def TrainSKClassificator():
     X = load_train()
     # assert X[X.isnull().any(axis=1)].shape[0] > 0
     # X.shape
-    X = balance_dataset(X)
+    # X = balance_dataset(X)
     X_test = load_test()
     # assert X[X.isnull().any(axis=1)].shape[0] > 0
     # X_test[X_test.isnull().any(axis=1)]

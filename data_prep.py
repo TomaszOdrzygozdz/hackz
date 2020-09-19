@@ -165,8 +165,8 @@ def prep_data():
         train_df, test_df = get_dummies_from_value_in_column(c, train_df,
                                                              test_df)
     assert target in train_df.columns
-    train_df.drop(columns='building_id')
-    test_df.drop(columns='building_id')
+    train_df.drop(columns='building_id', inplace=True)
+    test_df.drop(columns='building_id', inplace=True)
     train_df.to_csv(TRAIN_FILE, index=False)
     test_df.to_csv(TEST_FILE, index=False)
 
@@ -233,8 +233,11 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
         test_df.drop(columns=[feature_name], inplace=True)
     return train_df, test_df
 
-# def processing_outlier(feature_name, train_df, test_df):
-#     if feature_name == 'age_building':
-#         train_df[train_df[feature_name]==999]
-#
+def processing_outliers(feature_name, value, train_df, test_df):
+    # if feature_name == 'age_building':
+    #     train_df[train_df[feature_name]==999]
+    train_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
+    test_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
+    return train_df, test_df
+
 # prep_data()
