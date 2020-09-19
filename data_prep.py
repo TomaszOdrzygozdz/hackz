@@ -10,7 +10,7 @@ TEST_FILE = DUMP_DIR + 'test_simple.csv'
 PCA_TRAIN = DUMP_DIR + 'test_pca'
 
 target = 'damage_grade'
-ids_columns = ['building_id', 'istrict_id', 'vdcmun_id', 'ward_id']
+ids_columns = ['building_id', 'district_id', 'vdcmun_id', 'ward_id']
 categorical_columns = ['legal_ownership_status', 'land_surface_condition', 'foundation_type','roof_type',
                        'ground_floor_type', 'other_floor_type', 'position','plan_configuration', 'income_range_in_thousands' ]
 onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_secondary_use_hotel',
@@ -87,8 +87,9 @@ def prep_data():
     for c in categorical_columns:
         train_df, test_df = get_dummies_from_value_in_column(c, train_df,
                                                              test_df)
-    train_df.to_csv(TRAIN_FILE)
-    test_df.to_csv(TEST_FILE)
+    train_df.to_csv(TRAIN_FILE, index=False)
+    test_df.to_csv(TEST_FILE, index=False)
+    maxes = train_df.max()
 
 def load_train():
     return pd.read_csv(TRAIN_FILE)
@@ -99,3 +100,15 @@ def load_test():
 def load_X_Y(df):
     X, Y = df.loc[:, df.columns != target], df[[target]]
     return X, Y
+
+def load_X_Y_file(file_name):
+    df = pd.read_csv(DUMP_DIR + file_name + '.csv')
+    return load_X_Y(df)
+
+def remove_cols(col_list, file_name):
+    df = load_train()
+    df = df.drop(columns=col_list)
+    df.to_csv(DUMP_DIR + file_name, index=False)
+
+def check_cols():
+    print(len([target] + ids_columns + categorical_columns + onehot_columns + numerical_columns))
