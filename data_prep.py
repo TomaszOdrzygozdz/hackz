@@ -152,6 +152,7 @@ def prep_data():
     test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     categorical_columns.append('number_of_geotechnical_risks')
 
+    train_df, test_df = processing_outliers('age_building', 999, train_df, test_df)
 
     # df = pd.DataFrame()
     # for i in range(1, 6):
