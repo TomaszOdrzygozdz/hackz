@@ -160,12 +160,12 @@ def return_inner_models(features):
     # models.append(("knn", knn))
     # #
     # # ### adaboost
-    # ada = AdaBoostClassifier(n_estimators=5, random_state=0)
-    # models.append(("ada", ada))
+    ada = AdaBoostClassifier(n_estimators=5, random_state=0)
+    models.append(("ada", ada))
     #
     # ### decision treee
-    # dtree = DecisionTreeClassifier(max_depth=5)
-    # models.append(("dtree", dtree))
+    dtree = DecisionTreeClassifier(max_depth=5)
+    models.append(("dtree", dtree))
     #
     # ### lgbm model
     # lgbm_model = lightgbm.LGBMClassifier(num_leaves=5,
