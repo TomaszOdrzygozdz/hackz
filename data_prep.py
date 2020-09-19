@@ -55,7 +55,7 @@ def get_dummies_from_value_in_column(column_name, train_df, test_df):
 
 
 def get_scaled_column(column_name, train_df, test_df):
-    scaler = MinMaxScaler()
+    scaler = StandardScaler()
     train_df_scaled = scaler.fit_transform(
         train_df[[column_name]].values.reshape(-1, 1))
     test_df_scaled = scaler.fit_transform(
@@ -97,3 +97,6 @@ def load_test():
 
 def load_X_Y(df):
     X, Y = df.loc[:, df.columns != target], df[[target]]
+    return X, Y
+
+prep_data()
