@@ -225,12 +225,13 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
     train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
     test_df = pd.merge(test_df, df, left_on=feature_name, right_index=True, how='left')
 
+    test_df.fillna(df.mean(), inplace=True)
 
-
-    # x = train_df[train_df.isnull().any(axis=1)]
     if drop:
         train_df.drop(columns=[feature_name], inplace=True)
         test_df.drop(columns=[feature_name], inplace=True)
+
+    assert test_df[test_df.isnull().any(axis=1)].shape[0] == 0
     return train_df, test_df
 
 def processing_outliers(feature_name, value, train_df, test_df):

@@ -6,7 +6,7 @@ import numpy as np
 
 from data_prep import load_X_Y_file
 
-file_name = 'train_simple_pca_10'
+file_name = 'train_simple_pca_50'
 
 MODEL_FILE = 'saved_models/' + file_name
 
