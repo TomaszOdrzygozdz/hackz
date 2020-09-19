@@ -58,7 +58,7 @@ def get_scaled_column(column_name, train_df, test_df):
     scaler = StandardScaler()
     train_df_scaled = scaler.fit_transform(
         train_df[[column_name]].values.reshape(-1, 1))
-    test_df_scaled = scaler.fit_transform(
+    test_df_scaled = scaler.transform(
         test_df[column_name].values.reshape(-1, 1))
     train_df[column_name] = train_df_scaled
     test_df[column_name] = test_df_scaled
@@ -98,5 +98,3 @@ def load_test():
 def load_X_Y(df):
     X, Y = df.loc[:, df.columns != target], df[[target]]
     return X, Y
-
-prep_data()

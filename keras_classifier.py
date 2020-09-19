@@ -31,11 +31,11 @@ class KerasClassifier:
         Y_np = np_utils.to_categorical(self.Y, num_classes=6)
         Y_np_sums = Y_np.sum(axis=0)
         print(Y_np_sums)
-        self.model.fit(x=X_np, y=Y_np, epochs=epochs, callbacks=[NeptuneMonitor()], validation_split=0.5)
+        self.model.fit(x=X_np, y=Y_np, epochs=epochs, callbacks=[NeptuneMonitor()], validation_split=0.1)
         print('Training done')
         yp = self.model.predict(x=X_np)
         print(yp[0])
 
 df = load_train()
-kc = KerasClassifier([500,500, 500], df)
+kc = KerasClassifier([300,300], df)
 kc.train(epochs=5)
