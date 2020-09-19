@@ -7,6 +7,7 @@ DATA_DIR = './public_data/'
 DUMP_DIR = 'data/'
 TRAIN_FILE = DUMP_DIR + 'train_simple.csv'
 TEST_FILE = DUMP_DIR + 'test_simple.csv'
+PCA_TRAIN = DUMP_DIR + 'test_pca'
 
 target = 'damage_grade'
 ids_columns = ['building_id', 'istrict_id', 'vdcmun_id', 'ward_id']
