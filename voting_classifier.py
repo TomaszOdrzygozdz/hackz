@@ -11,6 +11,9 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, RandomF
 
 from numpy import mean
 import random
+
+from xgboost import XGBClassifier
+
 from data_prep import load_train, target, load_test, ids_columns, save_final_output, balance_dataset, dump_predictions, \
     DATA_DIR
 from neptune_helper import NeptuneHelper
@@ -140,6 +143,8 @@ def return_inner_models(features):
 
     models = []
 
+    xgb_model = XGBClassifier(objective='multi:softmax')
+    models.append(('xgb', xgb_model))
     ### random forest model
     rf_model = RandomForestClassifier(max_depth=10, random_state=42, n_estimators=5,
                                      verbose=0)  # Train the model on training data
@@ -188,7 +193,8 @@ def TrainSKClassificator():
     # X.shape
     # X = balance_dataset(X)
     X_test = load_test()
-    # assert X[X.isnull().any(axis=1)].shape[0] > 0
+    assert X_test[X_test.isnull().any(axis=1)].shape[0] == 0
+    assert X[X.isnull().any(axis=1)].shape[0] == 0
     # X_test[X_test.isnull().any(axis=1)]
 
     X_test_id = pd.read_csv(DATA_DIR + 'test.csv')['building_id']
@@ -199,7 +205,7 @@ def TrainSKClassificator():
     X_test = X_test.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
 
     X.reset_index(drop=True, inplace=True)
-    X_to_select = X.sample(n=int(X.shape[0]/5))
+    X_to_select = X.sample(n=int(X.shape[0]/1000))
     X_to_sel, y_to_sel = X_to_select.loc[:, X_to_select.columns != target], X_to_select[[target]]
 
     X, Y = X.loc[:, X.columns != target], X[[target]]

@@ -238,8 +238,8 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
 def processing_outliers(feature_name, value, train_df, test_df):
     # if feature_name == 'age_building':
     #     train_df[train_df[feature_name]==999]
-    train_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
-    test_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
+    train_df.loc[train_df[feature_name]==value, feature_name] = train_df[feature_name].mean()
+    test_df.loc[train_df[feature_name]==value, feature_name] = train_df[feature_name].mean()
     return train_df, test_df
 
 
