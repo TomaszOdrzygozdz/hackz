@@ -28,7 +28,6 @@ onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_seco
 numerical_columns = ['count_families', 'count_floors_pre_eq', 'age_building', 'plinth_area_sq_ft',
                      'height_ft_pre_eq', 'household_count', 'avg_hh_size']
 
-
 def get_dummies_from_value_in_column(column_name, train_df, test_df):
     train_df[column_name].fillna(value='no_info', inplace=True)
     test_df[column_name].fillna(value='no_info', inplace=True)
@@ -90,6 +89,11 @@ def prep_data():
     train_df.to_csv(TRAIN_FILE)
     test_df.to_csv(TEST_FILE)
 
-def load_data():
-    train = pd.read_csv(TRAIN_FILE)
-    test = pd.read_csv(TEST_FILE)
+def load_train():
+    return pd.read_csv(TRAIN_FILE)
+
+def load_test():
+    return pd.read_csv(TRAIN_FILE)
+
+def load_X_Y(df):
+    X, Y = df.loc[:, df.columns != target], df[[target]]
