@@ -240,4 +240,5 @@ def processing_outliers(feature_name, value, train_df, test_df):
     test_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
     return train_df, test_df
 
+
 # prep_data()

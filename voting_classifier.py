@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, RandomF
 
 from numpy import mean
 import random
-from data_prep import load_train, target, load_test, ids_columns, save_final_output, balance_dataset, dump_predictions
+from data_prep import load_train, target, load_test, ids_columns, save_final_output, balance_dataset, dump_predictions, \
+    DATA_DIR
 from neptune_helper import NeptuneHelper
 import pandas as pd
 import math
@@ -190,7 +191,7 @@ def TrainSKClassificator():
     # assert X[X.isnull().any(axis=1)].shape[0] > 0
     # X_test[X_test.isnull().any(axis=1)]
 
-    X_test_id = X_test['building_id']
+    X_test_id = pd.read_csv(DATA_DIR + 'test.csv')['building_id']
     # X.drop(columns=ids_columns, inplace=True)
     # X_test.drop(columns=ids_columns, inplace=True)
     print(X_test_id)
