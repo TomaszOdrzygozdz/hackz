@@ -219,4 +219,11 @@ def dump_predictions(X_test_id, output_):
     df_to_save[target] = output_
     save_final_output(df_to_save)
 
+# def find_statistics(feature_name, train_df, test_df):
+#     df = pd.DataFrame()
+#     for i in range(1, 6):
+#         df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
+#     df = df.div(df.sum(axis=1), axis=0)
+#     return df
+
 prep_data()
