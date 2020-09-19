@@ -80,8 +80,8 @@ def prep_data():
     train_df = pd.merge(merged_df, train, on='building_id', how='right')
     test_df = pd.merge(merged_df, test, on='building_id', how='right')
     # FILL IN MISSING DATA
-    train_df.fillna(train_df.mode(), inplace=True)
-    test_df.fillna(train_df.mode(), inplace=True)
+    train_df = train_df.fillna(train_df.mode().iloc[0])
+    test_df = test_df.fillna(train_df.mode().iloc[0])
 
     for feature_name in ids_columns:
         if feature_name != 'building_id':
@@ -220,7 +220,6 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
     df = df.div(df.sum(axis=1), axis=0)
     train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
     test_df = pd.merge(test_df, df, left_on=feature_name, right_index=True, how='left')
-    x = train_df[train_df.isnull().any(axis=1)]
     if drop:
         train_df.drop(columns=[feature_name], inplace=True)
         test_df.drop(columns=[feature_name], inplace=True)
