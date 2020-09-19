@@ -210,7 +210,7 @@ def dump_predictions(X_test_id, output_):
     save_final_output(df_to_save)
 
 def find_statistics(feature_name, train_df, test_df, drop=False):
-    #numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
+    numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
     mean_damage_grade_for_district_id = train_df.groupby(feature_name)[target].mean()
     df = pd.DataFrame()
     df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
@@ -220,8 +220,15 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
     df = df.div(df.sum(axis=1), axis=0)
     train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
     test_df = pd.merge(test_df, df, left_on=feature_name, right_index=True, how='left')
-    x = train_df[train_df.isnull().any(axis=1)]
+    test_df.fillna(0, inplace=True)
+    # x = train_df[train_df.isnull().any(axis=1)]
     if drop:
         train_df.drop(columns=[feature_name], inplace=True)
         test_df.drop(columns=[feature_name], inplace=True)
     return train_df, test_df
+
+# def processing_outlier(feature_name, train_df, test_df):
+#     if feature_name == 'age_building':
+#         train_df[train_df[feature_name]==999]
+
+# prep_data()
