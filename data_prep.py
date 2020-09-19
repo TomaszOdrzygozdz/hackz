@@ -170,8 +170,6 @@ def prep_data():
 
 def balance_dataset(train_df):
     balance_length = train_df.groupby(target).count().min()[0]
-    # balance_length
-    # grade_1
     b1 = train_df[train_df[target] == 1].sample(n=balance_length)
     b2 = train_df[train_df[target] == 2].sample(n=balance_length)
     b3 = train_df[train_df[target] == 3].sample(n=balance_length)
@@ -212,7 +210,7 @@ def dump_predictions(X_test_id, output_):
     save_final_output(df_to_save)
 
 def find_statistics(feature_name, train_df, test_df, drop=False):
-    numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
+    #numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
     mean_damage_grade_for_district_id = train_df.groupby(feature_name)[target].mean()
     df = pd.DataFrame()
     df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id

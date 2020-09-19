@@ -36,5 +36,5 @@ class KerasClassifier:
         yp = self.model.predict(x=X_np)
         print(yp[0])
 
-kc = KerasClassifier([300,300], 'no_ids_pca_4')
+kc = KerasClassifier([300,300, 300], 'train_simple')
 kc.train(epochs=5)
