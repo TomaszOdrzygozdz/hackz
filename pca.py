@@ -3,8 +3,8 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from data_prep import load_X_Y, load_train, PCA_TRAIN, load_X_Y_file, DUMP_DIR
 
-n_components = 4
-file_name = 'no_ids'
+n_components = 5
+file_name = 'test_simple'
 
 X, Y = load_X_Y_file(file_name)
 

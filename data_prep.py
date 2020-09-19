@@ -84,11 +84,12 @@ def prep_data():
     test_df = test_df.fillna(train_df.median())
 
     for feature_name in ids_columns:
-        train_df, test_df = find_statistics(feature_name, train_df, test_df, True)
+        if feature_name != 'building_id':
+            train_df, test_df = find_statistics(feature_name, train_df, test_df, True)
     for feature_name in statistics_for:
         train_df, test_df = find_statistics(feature_name, train_df, test_df, False)
 
-    uuu = train_df.columns
+    assert target in train_df.columns
     #FEATURES engineering
     train_df['neighbours'] = 'Yes'
     train_df.loc[train_df['position'] == 'Not attached', 'neighbours'] = 'No'
@@ -160,9 +161,9 @@ def prep_data():
     for c in categorical_columns:
         train_df, test_df = get_dummies_from_value_in_column(c, train_df,
                                                              test_df)
+    assert target in train_df.columns
     train_df.to_csv(TRAIN_FILE, index=False)
     test_df.to_csv(TEST_FILE, index=False)
-    maxes = train_df.max()
 
 def balance_dataset(train_df):
     balance_length = train_df.groupby(target).count().min()[0]
