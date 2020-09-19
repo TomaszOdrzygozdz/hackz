@@ -142,9 +142,9 @@ def prep_data():
     test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     categorical_columns.append('number_of_geotechnical_risks')
 
-    train['mean_damage_grade_for_district_id'] = train_df.groupby('district_id')[target].mean()
-    train['mean_damage_grade_for_vdcmun_id'] = train_df.groupby('vdcmun_id')[target].mean()
-    train['mean_damage_grade_for_ward_id'] = train_df.groupby('ward_id')[target].mean()
+    train_df['mean_damage_grade_for_district_id'] = train_df.groupby('district_id')[target].mean()
+    train_df['mean_damage_grade_for_vdcmun_id'] = train_df.groupby('vdcmun_id')[target].mean()
+    train_df['mean_damage_grade_for_ward_id'] = train_df.groupby('ward_id')[target].mean()
 
 
 
