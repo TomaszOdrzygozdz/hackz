@@ -142,13 +142,28 @@ def prep_data():
     test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     categorical_columns.append('number_of_geotechnical_risks')
 
-    mean_damage_grade_for_vdcmun_id = train_df.groupby('district_id')[target].mean()
-    mean_damage_grade_for_vdcmun_id = train_df.groupby('vdcmun_id')[target].mean()
-    mean_damage_grade_for_ward_id = train_df.groupby('ward_id')[target].mean()
-
+    mean_damage_grade_for_district_id = train_df.groupby('district_id')[target].mean()
     df = pd.DataFrame()
-    for i in range(1, 6):
-        df['no_of_{}_in_district'.format(i)] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
+    df['mean_damage_grade_for_district_id'] = mean_damage_grade_for_district_id
+    train_df = pd.merge(train_df, df, left_on='district_id', right_index=True, how='left')
+    test_df = pd.merge(test_df, df, left_on='district_id', right_index=True, how='left')
+
+    mean_damage_grade_for_vdcmun_id = train_df.groupby('vdcmun_id')[target].mean()
+    df = pd.DataFrame()
+    df['mean_damage_grade_for_vdcmun_id'] = mean_damage_grade_for_vdcmun_id
+    train_df = pd.merge(train_df, df, left_on='vdcmun_id', right_index=True, how='left')
+    test_df = pd.merge(test_df, df, left_on='vdcmun_id', right_index=True, how='left')
+
+    mean_damage_grade_for_ward_id = train_df.groupby('ward_id')[target].mean()
+    df = pd.DataFrame()
+    df['mean_damage_grade_for_ward_id'] = mean_damage_grade_for_ward_id
+    train_df = pd.merge(train_df, df, left_on='ward_id', right_index=True, how='left')
+    test_df = pd.merge(test_df, df, left_on='ward_id', right_index=True, how='left')
+
+    numerical_columns.append('mean_damage_grade_for_district_id', 'mean_damage_grade_for_vdcmun_id', 'mean_damage_grade_for_ward_id')
+    # df = pd.DataFrame()
+    # for i in range(1, 6):
+    #     df['no_of_{}_in_district'.format(i)] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
 
     # ONE HOT ENCODING AND SCALING
     for n in numerical_columns:
@@ -204,4 +219,4 @@ def dump_predictions(X_test_id, output_):
     df_to_save[target] = output_
     save_final_output(df_to_save)
 
-# prep_data()
+prep_data()

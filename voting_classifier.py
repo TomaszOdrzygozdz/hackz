@@ -152,8 +152,8 @@ def return_inner_models(features):
     models.append(('ridge', ridge))
     # #
     # # ### mlp
-    # # mlp = MLPClassifier(alpha=1, max_iter=100)
-    # # models.append(("mlp", mlp))
+    # mlp = MLPClassifier(alpha=1, max_iter=100)
+    # models.append(("mlp", mlp))
     # #
     # # ### knn
     knn = KNeighborsClassifier(n_neighbors=3)
