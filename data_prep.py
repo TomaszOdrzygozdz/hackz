@@ -227,5 +227,3 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
         train_df.drop(columns=[feature_name], inplace=True)
         test_df.drop(columns=[feature_name], inplace=True)
     return train_df, test_df
-
-prep_data()
