@@ -11,7 +11,7 @@ PCA_TRAIN = DUMP_DIR + 'test_pca'
 FINAL_OUTPUT = DUMP_DIR + 'final_output.csv'
 
 target = 'damage_grade'
-ids_columns = ['building_id', 'district_id', 'vdcmun_id', 'ward_id']
+ids_columns = ['ward_id', 'building_id', 'district_id', 'vdcmun_id']
 categorical_columns = ['legal_ownership_status', 'land_surface_condition', 'foundation_type','roof_type',
                        'ground_floor_type', 'other_floor_type', 'position','plan_configuration', 'income_range_in_thousands' ]
 onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_secondary_use_hotel',
@@ -80,12 +80,13 @@ def prep_data():
     train_df = pd.merge(merged_df, train, on='building_id', how='right')
     test_df = pd.merge(merged_df, test, on='building_id', how='right')
     # FILL IN MISSING DATA
-    train_df.fillna(train_df.mode(), inplace=True)
-    test_df.fillna(train_df.mode(), inplace=True)
+    train_df.fillna(train_df.mode().iloc[0], inplace=True)
+    test_df.fillna(test_df.mode().iloc[0], inplace=True)
 
     for feature_name in ids_columns:
         if feature_name != 'building_id':
             train_df, test_df = find_statistics(feature_name, train_df, test_df, True)
+
     for feature_name in statistics_for:
         train_df, test_df = find_statistics(feature_name, train_df, test_df, False)
 
@@ -217,6 +218,7 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
     df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
     for i in range(1, 6):
         df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby(feature_name)[target].value_counts().unstack()[i]
+    df.fillna(0, inplace=True)
     df = df.div(df.sum(axis=1), axis=0)
     train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
     test_df = pd.merge(test_df, df, left_on=feature_name, right_index=True, how='left')
@@ -225,3 +227,5 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
         train_df.drop(columns=[feature_name], inplace=True)
         test_df.drop(columns=[feature_name], inplace=True)
     return train_df, test_df
+
+prep_data()
