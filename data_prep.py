@@ -8,6 +8,7 @@ DUMP_DIR = 'data/'
 TRAIN_FILE = DUMP_DIR + 'train_simple.csv'
 TEST_FILE = DUMP_DIR + 'test_simple.csv'
 PCA_TRAIN = DUMP_DIR + 'test_pca'
+FINAL_OUTPUT = DUMP_DIR + 'final_output.csv'
 
 target = 'damage_grade'
 ids_columns = ['building_id', 'district_id', 'vdcmun_id', 'ward_id']
@@ -96,6 +97,9 @@ def load_train():
 
 def load_test():
     return pd.read_csv(TRAIN_FILE)
+
+def save_final_output(df):
+    df.to_csv(FINAL_OUTPUT, index=False)
 
 def load_X_Y(df):
     X, Y = df.loc[:, df.columns != target], df[[target]]
