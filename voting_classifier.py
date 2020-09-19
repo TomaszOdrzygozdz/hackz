@@ -183,11 +183,11 @@ def TrainSKClassificator():
     # selected_dataset = load_dbalanced_train_df  #### nonans_dataset#noinfo_dataset #### tutaj usuwamy te rzedzy co maja duzo kolumn, ktore sa puste
     # selected_dataset
     X = load_train()
-    assert X[X.isnull().any(axis=1)].shape[0] > 0
+    # assert X[X.isnull().any(axis=1)].shape[0] > 0
     # X.shape
     X = balance_dataset(X)
     X_test = load_test()
-    assert X[X.isnull().any(axis=1)].shape[0] > 0
+    # assert X[X.isnull().any(axis=1)].shape[0] > 0
     # X_test[X_test.isnull().any(axis=1)]
 
     X_test_id = X_test['building_id']
