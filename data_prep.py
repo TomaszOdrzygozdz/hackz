@@ -212,7 +212,7 @@ def dump_predictions(X_test_id, output_):
     save_final_output(df_to_save)
 
 def find_statistics(feature_name, train_df, test_df, drop=False):
-    numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
+    #numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
     mean_damage_grade_for_district_id = train_df.groupby(feature_name)[target].mean()
     df = pd.DataFrame()
     df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
@@ -220,7 +220,6 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
         df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby(feature_name)[target].value_counts().unstack()[i]
     df.fillna(df.mean(), inplace=True)
     df = df.div(df.sum(axis=1), axis=0)
-
 
     avg_stats[feature_name] = df.mean(axis=1)
     train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
