@@ -196,3 +196,5 @@ def dump_predictions(X_test_id, output_):
     df_to_save['building_id'] = X_test_id
     df_to_save[target] = output_
     save_final_output(df_to_save)
+
+prep_data()
