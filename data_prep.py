@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from pandas.api.types import CategoricalDtype
 
 DATA_DIR = './public_data/'
-DUMP_DIR = 'data/'
+DUMP_DIR = './data/'
 TRAIN_FILE = DUMP_DIR + 'train_simple.csv'
 TEST_FILE = DUMP_DIR + 'test_simple.csv'
 PCA_TRAIN = DUMP_DIR + 'test_pca'
@@ -170,7 +170,7 @@ def load_train():
     return pd.read_csv(TRAIN_FILE)
 
 def load_test():
-    return pd.read_csv(TRAIN_FILE)
+    return pd.read_csv(TEST_FILE)
 
 def save_final_output(df):
     df.to_csv(FINAL_OUTPUT, index=False)

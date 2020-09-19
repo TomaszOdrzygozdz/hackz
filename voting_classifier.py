@@ -186,9 +186,9 @@ def TrainSKClassificator():
     X = balance_dataset(X)
     X_test = load_test()
     X_test_id = X_test['building_id']
-    X.drop(columns=ids_columns, inplace=True)
-    X_test.drop(columns=ids_columns, inplace=True)
-
+    # X.drop(columns=ids_columns, inplace=True)
+    # X_test.drop(columns=ids_columns, inplace=True)
+    print(X_test_id)
     X = X.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
     X_test = X_test.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
 
