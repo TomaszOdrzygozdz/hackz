@@ -162,6 +162,8 @@ def prep_data():
         train_df, test_df = get_dummies_from_value_in_column(c, train_df,
                                                              test_df)
     assert target in train_df.columns
+    train_df.drop(columns='building_id')
+    test_df.drop(columns='building_id')
     train_df.to_csv(TRAIN_FILE, index=False)
     test_df.to_csv(TEST_FILE, index=False)
 
