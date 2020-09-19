@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from data_prep import load_X_Y, load_train, PCA_TRAIN, load_X_Y_file, DUMP_DIR
 
-n_components = 10
+n_components = 50
 file_name = 'train_simple'
 
 X, Y = load_X_Y_file(file_name)
@@ -14,6 +14,7 @@ pca = PCA(n_components=n_components)
 principalComponents = pca.fit_transform(X)
 print(f'pca.explained_variance_ = {pca.explained_variance_}')
 print(f'pca.explained_variance_ratio_ = {pca.explained_variance_ratio_}')
+print(f'pca.explained_variance_sum = {sum(pca.explained_variance_ratio_)}')
 
 principalDf = pd.DataFrame(data = principalComponents
 , columns = [f'pc {i}' for i in range(n_components)])
