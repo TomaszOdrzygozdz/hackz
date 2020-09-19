@@ -2,17 +2,17 @@
 from keras.layers import Dense, Input
 from keras.models import Sequential
 from keras.utils import np_utils
-from data_prep import load_X_Y, load_train
+from data_prep import load_X_Y, load_train, load_X_Y_file
 from neptunecontrib.monitoring.keras import NeptuneMonitor
 
 from neptune_helper import NeptuneHelper
 
 
 class KerasClassifier:
-    def __init__(self, hidden_layers, df):
+    def __init__(self, hidden_layers, file_name):
 
         nh = NeptuneHelper('KerasClassifier' ,params = {'hidden_layers': hidden_layers})
-        self.X, self.Y = load_X_Y(df)
+        self.X, self.Y = load_X_Y_file(file_name)
 
         input_tensor_size = len(self.X.columns)
         output_size = 6
@@ -36,6 +36,5 @@ class KerasClassifier:
         yp = self.model.predict(x=X_np)
         print(yp[0])
 
-df = load_train()
-kc = KerasClassifier([300,300], df)
+kc = KerasClassifier([300,300], 'no_ids_pca_4')
 kc.train(epochs=5)
