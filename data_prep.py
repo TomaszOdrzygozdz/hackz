@@ -29,6 +29,7 @@ onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_seco
                   'has_geotechnical_risk_rock_fall']
 numerical_columns = ['count_families', 'count_floors_pre_eq', 'age_building', 'plinth_area_sq_ft',
                      'height_ft_pre_eq', 'household_count', 'avg_hh_size']
+statistics_for = categorical_columns
 
 def get_dummies_from_value_in_column(column_name, train_df, test_df):
     train_df[column_name].fillna(value='no_info', inplace=True)
@@ -82,6 +83,12 @@ def prep_data():
     train_df = train_df.fillna(train_df.median())
     test_df = test_df.fillna(train_df.median())
 
+    for feature_name in ids_columns:
+        train_df, test_df = find_statistics(feature_name, train_df, test_df, True)
+    for feature_name in statistics_for:
+        train_df, test_df = find_statistics(feature_name, train_df, test_df, False)
+
+    uuu = train_df.columns
     #FEATURES engineering
     train_df['neighbours'] = 'Yes'
     train_df.loc[train_df['position'] == 'Not attached', 'neighbours'] = 'No'
@@ -104,7 +111,6 @@ def prep_data():
     train_df.loc[train_df['count_floors_pre_eq'] > 2, 'more_than_two_floors'] = 'Yes'
     test_df.loc[test_df['count_floors_pre_eq'] > 2, 'more_than_two_floors'] = 'Yes'
     categorical_columns.append('more_than_two_floors')
-    # new_categorical_cols.append('more_than_two_floors')
 
     train_df['number_of_geotechnical_risks'] = train_df[
         ['has_geotechnical_risk_fault_crack', 'has_geotechnical_risk_flood',
@@ -142,25 +148,7 @@ def prep_data():
     test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     categorical_columns.append('number_of_geotechnical_risks')
 
-    mean_damage_grade_for_district_id = train_df.groupby('district_id')[target].mean()
-    df = pd.DataFrame()
-    df['mean_damage_grade_for_district_id'] = mean_damage_grade_for_district_id
-    train_df = pd.merge(train_df, df, left_on='district_id', right_index=True, how='left')
-    test_df = pd.merge(test_df, df, left_on='district_id', right_index=True, how='left')
 
-    mean_damage_grade_for_vdcmun_id = train_df.groupby('vdcmun_id')[target].mean()
-    df = pd.DataFrame()
-    df['mean_damage_grade_for_vdcmun_id'] = mean_damage_grade_for_vdcmun_id
-    train_df = pd.merge(train_df, df, left_on='vdcmun_id', right_index=True, how='left')
-    test_df = pd.merge(test_df, df, left_on='vdcmun_id', right_index=True, how='left')
-
-    mean_damage_grade_for_ward_id = train_df.groupby('ward_id')[target].mean()
-    df = pd.DataFrame()
-    df['mean_damage_grade_for_ward_id'] = mean_damage_grade_for_ward_id
-    train_df = pd.merge(train_df, df, left_on='ward_id', right_index=True, how='left')
-    test_df = pd.merge(test_df, df, left_on='ward_id', right_index=True, how='left')
-
-    numerical_columns.append('mean_damage_grade_for_district_id', 'mean_damage_grade_for_vdcmun_id', 'mean_damage_grade_for_ward_id')
     # df = pd.DataFrame()
     # for i in range(1, 6):
     #     df['no_of_{}_in_district'.format(i)] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
@@ -219,11 +207,17 @@ def dump_predictions(X_test_id, output_):
     df_to_save[target] = output_
     save_final_output(df_to_save)
 
-# def find_statistics(feature_name, train_df, test_df):
-#     df = pd.DataFrame()
-#     for i in range(1, 6):
-#         df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby('district_id')[target].value_counts().unstack()[i]
-#     df = df.div(df.sum(axis=1), axis=0)
-#     return df
-
-prep_data()
+def find_statistics(feature_name, train_df, test_df, drop=False):
+    numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
+    mean_damage_grade_for_district_id = train_df.groupby(feature_name)[target].mean()
+    df = pd.DataFrame()
+    df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
+    for i in range(1, 6):
+        df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby(feature_name)[target].value_counts().unstack()[i]
+    df = df.div(df.sum(axis=1), axis=0)
+    train_df = pd.merge(train_df, df, left_on=feature_name, right_index=True, how='left')
+    test_df = pd.merge(test_df, df, left_on=feature_name, right_index=True, how='left')
+    if drop:
+        train_df.drop(columns=[feature_name], inplace=True)
+        test_df.drop(columns=[feature_name], inplace=True)
+    return train_df, test_df
