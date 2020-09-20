@@ -15,7 +15,7 @@ import random
 from xgboost import XGBClassifier
 
 from data_prep import load_train, target, load_test, ids_columns, save_final_output, balance_dataset, dump_predictions, \
-    DATA_DIR
+    DATA_DIR, load_X_Y_file
 from neptune_helper import NeptuneHelper
 import pandas as pd
 import math
@@ -143,8 +143,8 @@ def return_inner_models(features):
 
     models = []
 
-    xgb_model = XGBClassifier(objective='multi:softmax')
-    models.append(('xgb', xgb_model))
+    # xgb_model = XGBClassifier(objective='multi:softmax')
+    # models.append(('xgb', xgb_model))
     ### random forest model
     rf_model = RandomForestClassifier(max_depth=10, random_state=42, n_estimators=5,
                                      verbose=0)  # Train the model on training data
@@ -161,26 +161,26 @@ def return_inner_models(features):
     # mlp = MLPClassifier(alpha=1, max_iter=100)
     # models.append(("mlp", mlp))
     # #
-    # # ### knn
+    # ### knn
     knn = KNeighborsClassifier(n_neighbors=5)
     models.append(("knn", knn))
     # #
     # # ### adaboost
     ada = AdaBoostClassifier(n_estimators=10, random_state=0)
     models.append(("ada", ada))
-    #
+    # #
     # ### decision treee
     dtree = DecisionTreeClassifier(max_depth=10)
     models.append(("dtree", dtree))
-    #
-    # ### lgbm model
-    lgbm_model = lightgbm.LGBMClassifier(num_leaves=10,
-                                        learning_rate=0.05, n_estimators=5,
-                                        max_bin=55, bagging_fraction=0.8,
-                                        bagging_freq=5, feature_fraction=0.2319,
-                                        feature_fraction_seed=9, bagging_seed=9,
-                                        min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
-    models.append(("lgbm",lgbm_model))
+    # #
+    # # ### lgbm model
+    # lgbm_model = lightgbm.LGBMClassifier(num_leaves=10,
+    #                                     learning_rate=0.05, n_estimators=5,
+    #                                     max_bin=55, bagging_fraction=0.8,
+    #                                     bagging_freq=5, feature_fraction=0.2319,
+    #                                     feature_fraction_seed=9, bagging_seed=9,
+    #                                     min_data_in_leaf=6, min_sum_hessian_in_leaf=11)
+    # models.append(("lgbm",lgbm_model))
     return models
 
 
@@ -188,45 +188,59 @@ def TrainSKClassificator():
 
     # selected_dataset = load_dbalanced_train_df  #### nonans_dataset#noinfo_dataset #### tutaj usuwamy te rzedzy co maja duzo kolumn, ktore sa puste
     # selected_dataset
-    X = load_train()
-    # assert X[X.isnull().any(axis=1)].shape[0] > 0
-    # X.shape
-    # X = balance_dataset(X)
-    X_test = load_test()
-    assert X_test[X_test.isnull().any(axis=1)].shape[0] == 0
-    assert X[X.isnull().any(axis=1)].shape[0] == 0
-    # X_test[X_test.isnull().any(axis=1)]
+    # X = load_train()
+    # # assert X[X.isnull().any(axis=1)].shape[0] > 0
+    # # X.shape
+    # # X = balance_dataset(X)
+    # X_test = load_test()
+    # assert X_test[X_test.isnull().any(axis=1)].shape[0] == 0
+    # assert X[X.isnull().any(axis=1)].shape[0] == 0
+    # # X_test[X_test.isnull().any(axis=1)]
+    #
+    # X_test_id = pd.read_csv(DATA_DIR + 'test.csv')['building_id']
+    # # X.drop(columns=ids_columns, inplace=True)
+    # # X_test.drop(columns=ids_columns, inplace=True)
+    # print(X_test_id)
+    # X = X.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
+    # X_test = X_test.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
+    #
+    # X.reset_index(drop=True, inplace=True)
+    # X_to_select = X.sample(n=int(X.shape[0]/10))
+    #
+    # X_to_sel, y_to_sel = X_to_select.loc[:, X_to_select.columns != target], X_to_select[[target]]
+    #
+    # X, Y = X.loc[:, X.columns != target], X[[target]]
+    # # y[y.isnull().any(axis=1)]
+    # # X_norm = MinMaxScaler().fit_transform(X)
+    # # rf = RandomForestRegressor(n_estimators=5)
+    # # feat_selector = BorutaPy(rf, n_estimators=5, verbose=2)
+    # # feat_selector.fit_transform(X_norm, y)
+    # # feat_selector.support_
+    #
+    #
+    # # X_to_select = X_to_select.sample(n=X_to_select.shape[0]/10)
+    # a, b = scale_and_select_features(X_to_sel, y_to_sel.iloc[:,0])
+    # # selected_dataset
+    # # y
+    # # X, y = a,b
+    # selected_cols = a.columns.copy()
+    # print(selected_cols)
+    #
+    # X = X[selected_cols]
+    # X_test = X_test[selected_cols]
 
-    X_test_id = pd.read_csv(DATA_DIR + 'test.csv')['building_id']
-    # X.drop(columns=ids_columns, inplace=True)
-    # X_test.drop(columns=ids_columns, inplace=True)
-    print(X_test_id)
-    X = X.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
-    X_test = X_test.rename(columns = lambda x:re.sub('[^A-Za-z0-9_]+', '', x))
+    file_name = 'train_simple_pca_50'
+    file_name_test = 'test_simple_pca_50'
 
-    X.reset_index(drop=True, inplace=True)
-    X_to_select = X.sample(n=int(X.shape[0]/1000))
-    X_to_sel, y_to_sel = X_to_select.loc[:, X_to_select.columns != target], X_to_select[[target]]
+    MODEL_FILE = 'saved_models/' + file_name
 
-    X, Y = X.loc[:, X.columns != target], X[[target]]
-    # y[y.isnull().any(axis=1)]
-    # X_norm = MinMaxScaler().fit_transform(X)
-    # rf = RandomForestRegressor(n_estimators=5)
-    # feat_selector = BorutaPy(rf, n_estimators=5, verbose=2)
-    # feat_selector.fit_transform(X_norm, y)
-    # feat_selector.support_
+    test_size = 0.05
 
+    X, Y = load_X_Y_file(file_name)
+    original_X_test = load_test(file_name_test)
+    # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=test_size)
 
-    # X_to_select = X_to_select.sample(n=X_to_select.shape[0]/10)
-    a, b = scale_and_select_features(X_to_sel, y_to_sel.iloc[:,0])
-    # selected_dataset
-    # y
-    # X, y = a,b
-    selected_cols = a.columns.copy()
-    print(selected_cols)
-
-    X = X[selected_cols]
-    X_test = X_test[selected_cols]
+    X_test_building_id = pd.read_csv(DATA_DIR + 'test.csv')['building_id']
 
     # X = load_train()
     # X, Y = X.loc[:, X.columns != target], X[[target]]
@@ -237,7 +251,7 @@ def TrainSKClassificator():
 
     from sklearn.model_selection import KFold
 
-    SPLITS = 10
+    SPLITS = 5
     for i in range(1):
         kf = KFold(n_splits=SPLITS, random_state=random.randint(0, 2**32-1), shuffle=True)
 
@@ -273,8 +287,8 @@ def TrainSKClassificator():
             RMSE_sum=RMSE_cross_fold+RMSE_sum
 
         print('predict')
-        output_ = model.predict(X_test)
-        dump_predictions(X_test_id, output_)
+        output_ = model.predict(original_X_test)
+        dump_predictions(X_test_building_id, output_)
 
         print('saved')
 

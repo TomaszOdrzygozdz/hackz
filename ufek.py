@@ -1,6 +1,6 @@
 from data_prep import remove_cols, ids_columns, prep_data, load_train, load_test, find_statistics
 
-prep_data()
+# prep_data()
 X = load_train()
 print(len(X.columns))
 #remove_cols(ids_columns, 'no_ids.csv'

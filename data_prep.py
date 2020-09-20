@@ -27,7 +27,7 @@ onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_seco
                   'has_geotechnical_risk_land_settlement','has_geotechnical_risk_landslide',
                   'has_geotechnical_risk_liquefaction','has_geotechnical_risk_other',
                   'has_geotechnical_risk_rock_fall']
-numerical_columns = ['count_families', 'count_floors_pre_eq', 'age_building', 'plinth_area_sq_ft',
+numerical_columns = ['count_families', 'count_floors_pre_eq',#, 'age_building', 'plinth_area_sq_ft',
                      'height_ft_pre_eq', 'household_count', 'avg_hh_size']
 statistics_for = categorical_columns
 
@@ -89,10 +89,12 @@ def prep_data():
         if feature_name != 'building_id':
             train_df, test_df = find_statistics(feature_name, train_df, test_df, True)
 
-    for feature_name in statistics_for:
-        train_df, test_df = find_statistics(feature_name, train_df, test_df, False)
-
     assert target in train_df.columns
+
+    # bucketize('age_building', train_df, test_df)
+    train_df, test_df = fix_age(train_df, test_df)
+    train_df, test_df = fix_plinth(train_df, test_df)
+
     #FEATURES engineering
     train_df['neighbours'] = 'Yes'
     train_df.loc[train_df['position'] == 'Not attached', 'neighbours'] = 'No'
@@ -127,12 +129,12 @@ def prep_data():
     train_df.loc[train_df['number_of_geotechnical_risks'] > 1, 'number_of_geotechnical_risks_higher_than_1'] = 1
     train_df['number_of_geotechnical_risks_higher_than_2'] = 0
     train_df.loc[train_df['number_of_geotechnical_risks'] > 2, 'number_of_geotechnical_risks_higher_than_2'] = 1
-    train_df['number_of_geotechnical_risks_higher_than_3'] = 0
-    train_df.loc[train_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
-    train_df['number_of_geotechnical_risks_higher_than_4'] = 0
-    train_df.loc[train_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
-    train_df['number_of_geotechnical_risks_higher_than_5'] = 0
-    train_df.loc[train_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
+    # train_df['number_of_geotechnical_risks_higher_than_3'] = 0
+    # train_df.loc[train_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
+    # train_df['number_of_geotechnical_risks_higher_than_4'] = 0
+    # train_df.loc[train_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
+    # train_df['number_of_geotechnical_risks_higher_than_5'] = 0
+    # train_df.loc[train_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     test_df['number_of_geotechnical_risks'] = test_df[
         ['has_geotechnical_risk_fault_crack', 'has_geotechnical_risk_flood',
          'has_geotechnical_risk_land_settlement', 'has_geotechnical_risk_landslide',
@@ -144,15 +146,19 @@ def prep_data():
     test_df.loc[test_df['number_of_geotechnical_risks'] > 1, 'number_of_geotechnical_risks_higher_than_1'] = 1
     test_df['number_of_geotechnical_risks_higher_than_2'] = 0
     test_df.loc[test_df['number_of_geotechnical_risks'] > 2, 'number_of_geotechnical_risks_higher_than_2'] = 1
-    test_df['number_of_geotechnical_risks_higher_than_3'] = 0
-    test_df.loc[test_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
-    test_df['number_of_geotechnical_risks_higher_than_4'] = 0
-    test_df.loc[test_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
-    test_df['number_of_geotechnical_risks_higher_than_5'] = 0
-    test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
+    # test_df['number_of_geotechnical_risks_higher_than_3'] = 0
+    # test_df.loc[test_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
+    # test_df['number_of_geotechnical_risks_higher_than_4'] = 0
+    # test_df.loc[test_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
+    # test_df['number_of_geotechnical_risks_higher_than_5'] = 0
+    # test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     categorical_columns.append('number_of_geotechnical_risks')
 
-    train_df, test_df = processing_outliers('age_building', 999, train_df, test_df)
+    # train_df, test_df = processing_outliers('age_building', 999, train_df, test_df)
+
+    for feature_name in statistics_for:
+        train_df, test_df = find_statistics(feature_name, train_df, test_df, False)
+
 
     # df = pd.DataFrame()
     # for i in range(1, 6):
@@ -184,8 +190,11 @@ def balance_dataset(train_df):
 def load_train():
     return pd.read_csv(TRAIN_FILE)
 
-def load_test():
-    return pd.read_csv(TEST_FILE)
+def load_test(file=None):
+    if file is None:
+        return pd.read_csv(TEST_FILE)
+    else:
+        return pd.read_csv(DUMP_DIR + file +'.csv')
 
 def save_final_output(df):
     df.to_csv(FINAL_OUTPUT, index=False)
@@ -197,6 +206,7 @@ def load_X_Y(df):
 def load_X_Y_file(file_name):
     df = pd.read_csv(DUMP_DIR + file_name + '.csv')
     return load_X_Y(df)
+
 
 def remove_cols(col_list, file_name):
     df = load_train()
@@ -242,5 +252,56 @@ def processing_outliers(feature_name, value, train_df, test_df):
     test_df.loc[train_df[feature_name]==value, feature_name] = train_df[feature_name].mean()
     return train_df, test_df
 
+# prep_data()
+
+# def bucketize(feature_name, train_df, test_df):
+#     all_data = pd.concat([train_df[feature_name], test_df[feature_name]])
+#     # train_df[f'bucket_{feature_name}'] = pd.qcut(train_df[feature_name], q=5)
+#     # test_df[f'bucket_{feature_name}'] = pd.qcut(test_df[feature_name], q=5)
+#     all_data[f'bucket_{feature_name}'] = pd.qcut(all_data, q=5).to_frame()
+#     categorical_columns.append(f'bucket_{feature_name}')
+#     a,  b = pd.merge(train_df, all_data[f'bucket_{feature_name}'], left_index=True,
+#              right_index=True), pd.merge(test_df, all_data[f'bucket_{feature_name}'],
+#                                          left_index=True,
+#                                          right_index=True)
+#     return a, b
+
+def fix_age(train_df, test_df):
+    # train_df['number_of_geotechnical_risks_higher_than_0'] = 0
+    train_df.loc[train_df['age_building'] <= 8, 'age_building_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['age_building'] > 8) & (train_df['age_building']<=15), 'age_building_type'] = '(8.0, 15.0]'
+    train_df.loc[(train_df['age_building'] > 15) & (train_df['age_building'] <= 22), 'age_building_type'] = '(15.0, 22.0]'
+    train_df.loc[(train_df['age_building'] > 22) & (train_df['age_building'] <= 34), 'age_building_type'] = '(22.0, 34.0]'
+    train_df.loc[(train_df['age_building'] > 34), 'age_building_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['age_building'] <= 8, 'age_building_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['age_building'] > 8) & (test_df['age_building'] <= 15), 'age_building_type'] = '(8.0, 15.0]'
+    test_df.loc[(test_df['age_building'] > 15) & (test_df['age_building'] <= 22), 'age_building_type'] = '(15.0, 22.0]'
+    test_df.loc[(test_df['age_building'] > 22) & (test_df['age_building'] <= 34), 'age_building_type'] = '(22.0, 34.0]'
+    test_df.loc[(test_df['age_building'] > 34), 'age_building_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['age_building'], inplace=True)
+    test_df.drop(columns=['age_building'], inplace=True)
+    categorical_columns.append('age_building_type')
+    return train_df, test_df
+
+def fix_plinth(train_df, test_df):
+
+    train_df.loc[train_df['plinth_area_sq_ft'] <= 264.0, 'plinth_area_sq_ft_type'] = '(69.999, 264.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 264.0) & (train_df['plinth_area_sq_ft'] <= 330.0), 'plinth_area_sq_ft_type'] = '(264.0, 330.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 330.0) & (train_df['plinth_area_sq_ft'] <= 405.0), 'plinth_area_sq_ft_type'] = '(330.0, 405.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 405.0) & (train_df['plinth_area_sq_ft'] <= 532.0), 'plinth_area_sq_ft_type'] = '(405.0, 532.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 532.0), 'plinth_area_sq_ft_type'] = '(532.0, 5000.0]'
+
+    test_df.loc[test_df['plinth_area_sq_ft'] <= 264.0, 'plinth_area_sq_ft_type'] = '(69.999, 264.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 264.0) & (test_df['plinth_area_sq_ft'] <= 330.0), 'plinth_area_sq_ft_type'] = '(264.0, 330.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 330.0) & (test_df['plinth_area_sq_ft'] <= 405.0), 'plinth_area_sq_ft_type'] = '(330.0, 405.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 405.0) & (test_df['plinth_area_sq_ft'] <= 532.0), 'plinth_area_sq_ft_type'] = '(405.0, 532.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 532.0), 'plinth_area_sq_ft_type'] = '(532.0, 5000.0]'
+
+    train_df.drop(columns=['plinth_area_sq_ft'], inplace=True)
+    test_df.drop(columns=['plinth_area_sq_ft'], inplace=True)
+    categorical_columns.append('plinth_area_sq_ft_type')
+    return train_df, test_df
 
 # prep_data()
