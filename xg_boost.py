@@ -7,12 +7,12 @@ import pandas as pd
 
 from data_prep import load_X_Y_file, DATA_DIR, dump_predictions, load_test
 
-file_name = 'train_simple_new_pca_75'
-file_name_test = 'test_simple_new_pca_75'
+file_name = 'train_simple_new_pca_100'
+file_name_test = 'test_simple_new_pca_100'
 
 MODEL_FILE = 'saved_models/' + file_name
 
-test_size = 0.05
+test_size = 0.01
 
 X, Y = load_X_Y_file(file_name)
 original_X_test = load_test(file_name_test)

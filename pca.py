@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from data_prep import load_X_Y, load_train, PCA_TRAIN, load_X_Y_file, DUMP_DIR, \
     load_test
 
-n_components = 85
+n_components = 100
 file_name = 'train_simple_new'
 test_file_name = 'test_simple_new'
 
@@ -27,6 +27,5 @@ principalTestDf = pd.DataFrame(data = principalComponentsTest
 , columns = [f'pc {i}' for i in range(n_components)])
 
 principalDf['damage_grade'] = Y
-
 principalDf.to_csv(DUMP_DIR + file_name + f'_pca_{n_components}.csv', index=False)
 principalTestDf.to_csv(DUMP_DIR + test_file_name + f'_pca_{n_components}.csv', index=False)

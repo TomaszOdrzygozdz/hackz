@@ -11,7 +11,7 @@ PCA_TRAIN = DUMP_DIR + 'test_pca'
 FINAL_OUTPUT = DUMP_DIR + 'final_output_new.csv'
 
 target = 'damage_grade'
-ids_columns = ['ward_id', 'building_id', 'district_id', 'vdcmun_id']
+ids_columns = ['building_id', 'district_id', 'vdcmun_id']
 categorical_columns = ['legal_ownership_status', 'land_surface_condition', 'foundation_type','roof_type',
                        'ground_floor_type', 'other_floor_type', 'position','plan_configuration', 'income_range_in_thousands' ]
 onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_secondary_use_hotel',
@@ -69,6 +69,9 @@ def get_scaled_column(column_name, train_df, test_df):
     return train_df, test_df
 
 def prep_data():
+
+
+
     building_ownership = pd.read_csv(DATA_DIR + 'building_ownership.csv')
     building_structure = pd.read_csv(DATA_DIR + 'building_structure.csv')
     train = pd.read_csv(DATA_DIR + 'train.csv')
@@ -81,6 +84,9 @@ def prep_data():
     train_df = pd.merge(merged_df, train, on='building_id', how='right')
     test_df = pd.merge(merged_df, test, on='building_id', how='right')
     # FILL IN MISSING DATA
+    train_df.drop(columns=['ward_id'], inplace=True)
+    test_df.drop(columns=['ward_id'], inplace=True)
+
     train_df.fillna(train_df.mode().iloc[0], inplace=True)
     test_df.fillna(test_df.mode().iloc[0], inplace=True)
 
@@ -226,7 +232,7 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
     #numerical_columns.append(f'mean_damage_grade_for_{feature_name}')
     mean_damage_grade_for_district_id = train_df.groupby(feature_name)[target].mean()
     df = pd.DataFrame()
-    df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
+    #df[f'mean_damage_grade_for_{feature_name}'] = mean_damage_grade_for_district_id
     for i in range(1, 6):
         df[f'dmg_lvl_{i}_in_{feature_name}'] = train_df.groupby(feature_name)[target].value_counts().unstack()[i]
     df.fillna(df.mean(), inplace=True)
