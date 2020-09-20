@@ -23,7 +23,7 @@ class KerasClassifier:
             self.model.add(Dense(hidden_layer, activation='relu'))
         self.model.add(Dense(output_size, activation='softmax'))
         # Compile model
-        self.model.compile(loss='categorical_crossentropy', optimizer='adam',
+        self.model.compile(loss='mse', optimizer='adam',
                       metrics=['accuracy'])
 
     def train(self, epochs=5):
@@ -36,5 +36,5 @@ class KerasClassifier:
         yp = self.model.predict(x=X_np)
         print(yp[0])
 
-kc = KerasClassifier([300,300, 300], 'train_simple')
-kc.train(epochs=5)
+kc = KerasClassifier([300,300, 300,300], 'train_simple_pca_75')
+kc.train(epochs=10)

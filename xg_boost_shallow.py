@@ -7,8 +7,8 @@ import pandas as pd
 
 from data_prep import load_X_Y_file, DATA_DIR, dump_predictions, load_test
 
-file_name = 'train_simple_new_pca_75'
-file_name_test = 'test_simple_new_pca_75'
+file_name = 'train_simple'
+file_name_test = 'test_simple'
 
 MODEL_FILE = 'saved_models/' + file_name
 
@@ -20,7 +20,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=test_size)
 
 X_test_building_id = pd.read_csv(DATA_DIR + 'test.csv')['building_id']
 
-model = XGBClassifier(objective='multi:softmax')
+model = XGBClassifier(objective='multi:softmax', max_depth=5)
 model.fit(X, Y)
 #model.load_model(MODEL_FILE)
 model.save_model(MODEL_FILE)

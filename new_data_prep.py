@@ -5,10 +5,10 @@ from pandas.api.types import CategoricalDtype
 
 DATA_DIR = './public_data/'
 DUMP_DIR = './data/'
-TRAIN_FILE = DUMP_DIR + 'train_simple.csv'
-TEST_FILE = DUMP_DIR + 'test_simple.csv'
+TRAIN_FILE = DUMP_DIR + 'train_simple_new.csv'
+TEST_FILE = DUMP_DIR + 'test_simple_new.csv'
 PCA_TRAIN = DUMP_DIR + 'test_pca'
-FINAL_OUTPUT = DUMP_DIR + 'final_output.csv'
+FINAL_OUTPUT = DUMP_DIR + 'final_output_new.csv'
 
 target = 'damage_grade'
 ids_columns = ['ward_id', 'building_id', 'district_id', 'vdcmun_id']
@@ -27,7 +27,7 @@ onehot_columns = ['has_secondary_use', 'has_secondary_use_agriculture','has_seco
                   'has_geotechnical_risk_land_settlement','has_geotechnical_risk_landslide',
                   'has_geotechnical_risk_liquefaction','has_geotechnical_risk_other',
                   'has_geotechnical_risk_rock_fall']
-numerical_columns = ['count_families', 'count_floors_pre_eq', 'age_building', 'plinth_area_sq_ft',
+numerical_columns = ['count_families', 'count_floors_pre_eq',#, 'age_building', 'plinth_area_sq_ft',
                      'height_ft_pre_eq', 'household_count', 'avg_hh_size']
 
 avg_stats = {}
@@ -89,6 +89,16 @@ def prep_data():
             train_df, test_df = find_statistics(feature_name, train_df, test_df, True)
 
     assert target in train_df.columns
+
+    # bucketize('age_building', train_df, test_df)fix_floors
+    train_df, test_df = fix_floors(train_df, test_df)
+    train_df, test_df = fix_cf(train_df, test_df)
+    train_df, test_df = fix_hh_size(train_df, test_df)
+    train_df, test_df = fix_hc(train_df, test_df)
+    train_df, test_df = fix_hh(train_df, test_df)
+    train_df, test_df = fix_age(train_df, test_df)
+    train_df, test_df = fix_plinth(train_df, test_df)
+
     #FEATURES engineering
     train_df['neighbours'] = 'Yes'
     train_df.loc[train_df['position'] == 'Not attached', 'neighbours'] = 'No'
@@ -106,11 +116,6 @@ def prep_data():
     categorical_columns.append('simple_plan_configuration')
     # new_categorical_cols.append('simple_plan_configuration')
 
-    train_df['more_than_two_floors'] = 'No'
-    test_df['more_than_two_floors'] = 'No'
-    train_df.loc[train_df['count_floors_pre_eq'] > 2, 'more_than_two_floors'] = 'Yes'
-    test_df.loc[test_df['count_floors_pre_eq'] > 2, 'more_than_two_floors'] = 'Yes'
-    categorical_columns.append('more_than_two_floors')
 
     train_df['number_of_geotechnical_risks'] = train_df[
         ['has_geotechnical_risk_fault_crack', 'has_geotechnical_risk_flood',
@@ -123,12 +128,12 @@ def prep_data():
     train_df.loc[train_df['number_of_geotechnical_risks'] > 1, 'number_of_geotechnical_risks_higher_than_1'] = 1
     train_df['number_of_geotechnical_risks_higher_than_2'] = 0
     train_df.loc[train_df['number_of_geotechnical_risks'] > 2, 'number_of_geotechnical_risks_higher_than_2'] = 1
-    train_df['number_of_geotechnical_risks_higher_than_3'] = 0
-    train_df.loc[train_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
-    train_df['number_of_geotechnical_risks_higher_than_4'] = 0
-    train_df.loc[train_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
-    train_df['number_of_geotechnical_risks_higher_than_5'] = 0
-    train_df.loc[train_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
+    # train_df['number_of_geotechnical_risks_higher_than_3'] = 0
+    # train_df.loc[train_df['number_of_geotechnical_risks'] > 3, 'number_of_geotechnical_risks_higher_than_3'] = 1
+    # train_df['number_of_geotechnical_risks_higher_than_4'] = 0
+    # train_df.loc[train_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
+    # train_df['number_of_geotechnical_risks_higher_than_5'] = 0
+    # train_df.loc[train_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
     test_df['number_of_geotechnical_risks'] = test_df[
         ['has_geotechnical_risk_fault_crack', 'has_geotechnical_risk_flood',
          'has_geotechnical_risk_land_settlement', 'has_geotechnical_risk_landslide',
@@ -146,14 +151,14 @@ def prep_data():
     # test_df.loc[test_df['number_of_geotechnical_risks'] > 4, 'number_of_geotechnical_risks_higher_than_4'] = 1
     # test_df['number_of_geotechnical_risks_higher_than_5'] = 0
     # test_df.loc[test_df['number_of_geotechnical_risks'] > 5, 'number_of_geotechnical_risks_higher_than_5'] = 1
-
+    categorical_columns.append('number_of_geotechnical_risks')
     categorical_columns.append('number_of_geotechnical_risks_higher_than_0')
     categorical_columns.append('number_of_geotechnical_risks_higher_than_1')
-    categorical_columns.append('number_of_geotechnical_risks > 0')
 
     statistics_for = categorical_columns
     for feature_name in statistics_for:
         train_df, test_df = find_statistics(feature_name, train_df, test_df, False)
+
 
     # df = pd.DataFrame()
     # for i in range(1, 6):
@@ -243,8 +248,125 @@ def find_statistics(feature_name, train_df, test_df, drop=False):
 def processing_outliers(feature_name, value, train_df, test_df):
     # if feature_name == 'age_building':
     #     train_df[train_df[feature_name]==999]
-    train_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
-    test_df.loc[train_df[feature_name]==value, feature_name] = train_df[train_df[feature_name]].mean()
+    train_df.loc[train_df[feature_name]==value, feature_name] = train_df[feature_name].mean()
+    test_df.loc[train_df[feature_name]==value, feature_name] = train_df[feature_name].mean()
     return train_df, test_df
 
-# prep_data()
+
+def fix_floors(train_df, test_df):
+    train_df.loc[train_df['count_floors_pre_eq'] <= 2.0, 'count_floors_pre_eq_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['count_floors_pre_eq'] > 2.0), 'count_floors_pre_eq_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['count_floors_pre_eq'] <= 2.0, 'count_floors_pre_eq_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['count_floors_pre_eq'] > 2.0), 'count_floors_pre_eq_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['count_floors_pre_eq'], inplace=True)
+    test_df.drop(columns=['count_floors_pre_eq'], inplace=True)
+    categorical_columns.append('count_floors_pre_eq_type')
+    numerical_columns.remove('count_floors_pre_eq')
+    return train_df, test_df
+
+def fix_cf(train_df, test_df):
+    train_df.loc[train_df['count_families'] <= 1, 'count_families_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['count_families'] > 1), 'count_families_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['count_families'] <= 1, 'count_families_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['count_families'] > 1), 'count_families_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['count_families'], inplace=True)
+    test_df.drop(columns=['count_families'], inplace=True)
+    categorical_columns.append('count_families_type')
+    numerical_columns.remove('count_families')
+    return train_df, test_df
+
+def fix_hh_size(train_df, test_df):
+    train_df.loc[train_df['avg_hh_size'] <= 5, 'avg_hh_size_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['avg_hh_size'] > 5), 'avg_hh_size_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['avg_hh_size'] <= 5, 'avg_hh_size_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['avg_hh_size'] > 5), 'avg_hh_size_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['avg_hh_size'], inplace=True)
+    test_df.drop(columns=['avg_hh_size'], inplace=True)
+    categorical_columns.append('avg_hh_size_type')
+    numerical_columns.remove('avg_hh_size')
+    return train_df, test_df
+
+def fix_hc(train_df, test_df):
+    # train_df['number_of_geotechnical_risks_higher_than_0'] = 0
+    train_df.loc[train_df['household_count'] <= 75.0, 'household_count_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['household_count'] > 75.0) & (train_df['household_count']<=122.0), 'household_count_type'] = '(8.0, 15.0]'
+    train_df.loc[(train_df['household_count'] > 122) & (train_df['household_count'] <= 188), 'household_count_type'] = '(15.0, 22.0]'
+    train_df.loc[(train_df['household_count'] > 188) & (train_df['household_count'] <= 318), 'household_count_type'] = '(22.0, 34.0]'
+    train_df.loc[(train_df['household_count'] > 318), 'household_count_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['household_count'] <= 75.0, 'household_count_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['household_count'] > 75.0) & (test_df['household_count'] <= 122.0), 'household_count_type'] = '(8.0, 15.0]'
+    test_df.loc[(test_df['household_count'] > 122) & (test_df['household_count'] <= 188), 'household_count_type'] = '(15.0, 22.0]'
+    test_df.loc[(test_df['household_count'] > 188) & (test_df['household_count'] <= 318), 'household_count_type'] = '(22.0, 34.0]'
+    test_df.loc[(test_df['household_count'] > 318), 'household_count_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['household_count'], inplace=True)
+    test_df.drop(columns=['household_count'], inplace=True)
+    categorical_columns.append('household_count_type')
+    numerical_columns.remove('household_count')
+    return train_df, test_df
+
+def fix_hh(train_df, test_df):
+    # train_df['number_of_geotechnical_risks_higher_than_0'] = 0
+    train_df.loc[train_df['height_ft_pre_eq'] <= 12.0, 'height_ft_pre_eq_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['height_ft_pre_eq'] > 12.0) & (train_df['height_ft_pre_eq']<=14.0), 'height_ft_pre_eq_type'] = '(8.0, 15.0]'
+    train_df.loc[(train_df['height_ft_pre_eq'] > 14) & (train_df['height_ft_pre_eq'] <= 17), 'height_ft_pre_eq_type'] = '(15.0, 22.0]'
+    train_df.loc[(train_df['height_ft_pre_eq'] > 17) & (train_df['height_ft_pre_eq'] <= 20), 'height_ft_pre_eq_type'] = '(22.0, 34.0]'
+    train_df.loc[(train_df['height_ft_pre_eq'] > 20), 'height_ft_pre_eq_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['height_ft_pre_eq'] <= 12.0, 'height_ft_pre_eq_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['height_ft_pre_eq'] > 12.0) & (test_df['height_ft_pre_eq'] <= 14), 'height_ft_pre_eq_type'] = '(8.0, 15.0]'
+    test_df.loc[(test_df['height_ft_pre_eq'] > 14) & (test_df['height_ft_pre_eq'] <= 17), 'height_ft_pre_eq_type'] = '(15.0, 22.0]'
+    test_df.loc[(test_df['height_ft_pre_eq'] > 17) & (test_df['height_ft_pre_eq'] <= 20), 'height_ft_pre_eq_type'] = '(22.0, 34.0]'
+    test_df.loc[(test_df['height_ft_pre_eq'] > 20), 'height_ft_pre_eq_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['height_ft_pre_eq'], inplace=True)
+    test_df.drop(columns=['height_ft_pre_eq'], inplace=True)
+    categorical_columns.append('height_ft_pre_eq_type')
+    numerical_columns.remove('height_ft_pre_eq')
+    return train_df, test_df
+
+def fix_age(train_df, test_df):
+    # train_df['number_of_geotechnical_risks_higher_than_0'] = 0
+    train_df.loc[train_df['age_building'] <= 8, 'age_building_type'] = '(-0.001, 8.0]'
+    train_df.loc[(train_df['age_building'] > 8) & (train_df['age_building']<=15), 'age_building_type'] = '(8.0, 15.0]'
+    train_df.loc[(train_df['age_building'] > 15) & (train_df['age_building'] <= 22), 'age_building_type'] = '(15.0, 22.0]'
+    train_df.loc[(train_df['age_building'] > 22) & (train_df['age_building'] <= 34), 'age_building_type'] = '(22.0, 34.0]'
+    train_df.loc[(train_df['age_building'] > 34), 'age_building_type'] = '(34.0, 999.0]'
+
+    test_df.loc[test_df['age_building'] <= 8, 'age_building_type'] = '(-0.001, 8.0]'
+    test_df.loc[(test_df['age_building'] > 8) & (test_df['age_building'] <= 15), 'age_building_type'] = '(8.0, 15.0]'
+    test_df.loc[(test_df['age_building'] > 15) & (test_df['age_building'] <= 22), 'age_building_type'] = '(15.0, 22.0]'
+    test_df.loc[(test_df['age_building'] > 22) & (test_df['age_building'] <= 34), 'age_building_type'] = '(22.0, 34.0]'
+    test_df.loc[(test_df['age_building'] > 34), 'age_building_type'] = '(34.0, 999.0]'
+
+    train_df.drop(columns=['age_building'], inplace=True)
+    test_df.drop(columns=['age_building'], inplace=True)
+    categorical_columns.append('age_building_type')
+    return train_df, test_df
+
+def fix_plinth(train_df, test_df):
+
+    train_df.loc[train_df['plinth_area_sq_ft'] <= 264.0, 'plinth_area_sq_ft_type'] = '(69.999, 264.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 264.0) & (train_df['plinth_area_sq_ft'] <= 330.0), 'plinth_area_sq_ft_type'] = '(264.0, 330.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 330.0) & (train_df['plinth_area_sq_ft'] <= 405.0), 'plinth_area_sq_ft_type'] = '(330.0, 405.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 405.0) & (train_df['plinth_area_sq_ft'] <= 532.0), 'plinth_area_sq_ft_type'] = '(405.0, 532.0]'
+    train_df.loc[(train_df['plinth_area_sq_ft'] > 532.0), 'plinth_area_sq_ft_type'] = '(532.0, 5000.0]'
+
+    test_df.loc[test_df['plinth_area_sq_ft'] <= 264.0, 'plinth_area_sq_ft_type'] = '(69.999, 264.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 264.0) & (test_df['plinth_area_sq_ft'] <= 330.0), 'plinth_area_sq_ft_type'] = '(264.0, 330.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 330.0) & (test_df['plinth_area_sq_ft'] <= 405.0), 'plinth_area_sq_ft_type'] = '(330.0, 405.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 405.0) & (test_df['plinth_area_sq_ft'] <= 532.0), 'plinth_area_sq_ft_type'] = '(405.0, 532.0]'
+    test_df.loc[(test_df['plinth_area_sq_ft'] > 532.0), 'plinth_area_sq_ft_type'] = '(532.0, 5000.0]'
+
+    train_df.drop(columns=['plinth_area_sq_ft'], inplace=True)
+    test_df.drop(columns=['plinth_area_sq_ft'], inplace=True)
+    categorical_columns.append('plinth_area_sq_ft_type')
+    #numerical_columns.remove('plinth_area_sq_ft')
+    return train_df, test_df
